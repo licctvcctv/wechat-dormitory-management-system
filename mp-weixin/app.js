@@ -89,5 +89,78 @@ App({
       this.$base.isProduction = IS_PRODUCTION;
     }
     return this.$base.url;
+  },
+
+  /**
+   * 获取完整的图片 URL
+   * @param {string} path - 图片路径（相对路径或完整URL）
+   * @returns {string} 完整的图片 URL
+   */
+  getImageUrl: function(path) {
+    if (!path) return '';
+
+    // 如果已经是完整 URL，直接返回
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    // 使用 mini_fix 的方法（如果可用）
+    if (miniFix && miniFix.getImageUrl) {
+      return miniFix.getImageUrl(path);
+    }
+
+    // 备用方法：手动拼接
+    const baseURL = this.getApiBaseUrl();
+    const cleanPath = path.replace(/^\/+/, '');
+    return baseURL.endsWith('/')
+      ? baseURL + cleanPath
+      : baseURL + '/' + cleanPath;
+  },
+
+  /**
+   * 批量获取图片 URL
+   * @param {Array|String} paths - 图片路径数组或逗号分隔的字符串
+   * @returns {Array} 完整的图片 URL 数组
+   */
+  getImageUrls: function(paths) {
+    if (!paths) return [];
+
+    // 使用 mini_fix 的方法（如果可用）
+    if (miniFix && miniFix.getImageUrls) {
+      return miniFix.getImageUrls(paths);
+    }
+
+    // 备用方法
+    const pathArray = typeof paths === 'string'
+      ? paths.split(',').map(p => p.trim()).filter(p => p)
+      : paths;
+
+    return pathArray.map(path => this.getImageUrl(path));
+  },
+
+  /**
+   * 处理富文本中的图片
+   * @param {string} html - 富文本 HTML
+   * @returns {string} 处理后的 HTML
+   */
+  fixRichTextImages: function(html) {
+    if (!html) return '';
+
+    let result = html;
+    const self = this;
+
+    // 替换相对路径为完整 URL
+    result = result.replace(
+      /<img([^>]*?)src=["'](?!https?:\/\/)([^"']+)["']/gi,
+      function(match, attrs, src) {
+        const fullUrl = self.getImageUrl(src);
+        return '<img' + attrs + 'src="' + fullUrl + '"';
+      }
+    );
+
+    // 添加图片样式
+    result = result.replace(/img src/gi, 'img style="width:100%;max-width:100%;" src');
+
+    return result;
   }
 });

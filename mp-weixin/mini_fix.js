@@ -136,5 +136,20 @@ if (typeof wx !== 'undefined' && wx.__miniPatched__) {
       IS_PRODUCTION = isProduction;
       console.log('[mini_fix] 环境模式已更新:', isProduction ? '生产环境' : '开发/调试环境');
     };
+
+    // 导出图片 URL 处理函数
+    module.exports.getImageUrl = function(path) {
+      if (!path) return '';
+      if (/^https?:\/\//i.test(path)) return fixHost(path);
+      return join(getBase(), path);
+    };
+
+    module.exports.getImageUrls = function(paths) {
+      if (!paths) return [];
+      const pathArray = typeof paths === 'string'
+        ? paths.split(',').map(p => p.trim()).filter(p => p)
+        : paths;
+      return pathArray.map(path => module.exports.getImageUrl(path));
+    };
   }
 }
