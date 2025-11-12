@@ -47,20 +47,34 @@ const ENV_CONFIG = {
 
   /**
    * 测试环境 / 真机调试：在设备上运行，需要可访问的服务器
+   *
+   * ⚠️ 重要提示：
+   * 1. 真机调试时，微信小程序要求图片等资源必须使用 HTTPS
+   * 2. 开发阶段可以在"微信开发者工具 -> 详情 -> 本地设置"中勾选"不校验合法域名"
+   * 3. 生产环境必须配置 HTTPS 服务器
+   *
+   * 配置选项：
+   * - HTTP（开发）：http://YOUR_LOCAL_IP:8080/nodejsn73cv/
+   * - HTTPS（生产）：https://YOUR_DOMAIN:8443/nodejsn73cv/
    */
   testing: {
     baseURL: 'http://YOUR_LOCAL_IP:8080/nodejsn73cv/',
+    // 如果已配置 HTTPS，取消下面的注释并注释掉上面的 HTTP 地址
+    // baseURL: 'https://YOUR_LOCAL_IP:8443/nodejsn73cv/',
     apiRoot: 'nodejsn73cv/',
     description: '测试环境 - 真机调试 / 预览，请配置服务器地址'
   },
 
   /**
    * 生产环境：正式发布
+   *
+   * ⚠️ 必须使用 HTTPS！
+   * 微信小程序要求生产环境必须使用 HTTPS 协议
    */
   production: {
     baseURL: 'https://your-domain.com/nodejsn73cv/',
     apiRoot: 'nodejsn73cv/',
-    description: '生产环境 - 正式服务器'
+    description: '生产环境 - 正式服务器（必须 HTTPS）'
   }
 };
 
