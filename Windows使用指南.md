@@ -43,13 +43,30 @@
 
 ### 步骤 2：启动后端服务器（HTTPS）
 
+**方法 A：双击 bat 文件（推荐）**
+
 1. 进入 `nodejsn73cv` 目录
 2. **双击运行** `一键启动HTTPS.bat`
 3. 等待自动完成：
+   - ✅ 清理占用端口
    - ✅ 安装依赖
    - ✅ 检测本机 IP
    - ✅ 生成 SSL 证书
    - ✅ 启动 HTTPS 服务器
+
+**方法 B：使用命令行（推荐高级用户）**
+
+```cmd
+cd nodejsn73cv
+node start-https.js
+```
+
+或使用 npm 脚本：
+
+```cmd
+cd nodejsn73cv
+npm run https
+```
 
 ### 步骤 3：打开小程序
 
@@ -136,22 +153,42 @@ npm --version
 2. 双击 `一键启动HTTP.bat`
 3. 启动 HTTP 服务器（端口 8080）
 
-#### 2.2 手动启动（高级用户）
+#### 2.2 使用 Node.js 脚本（推荐）
+
+**优势**：
+- ✅ 自动清理占用端口
+- ✅ 不会闪退，可以看到完整日志
+- ✅ 彩色输出，更易读
+- ✅ 更好的错误提示
+
+**HTTPS 模式**：
+```cmd
+cd nodejsn73cv
+node start-https.js
+```
+
+**HTTP 模式**：
+```cmd
+cd nodejsn73cv
+node start-http.js
+```
+
+#### 2.3 使用 npm 脚本
 
 ```cmd
 cd nodejsn73cv
 
-# 首次运行：安装依赖
-npm install
+# HTTPS 模式（推荐真机调试）
+npm run https
 
-# 配置 IP 和生成证书
-npm run setup
+# HTTP 模式（开发环境）
+npm run http
 
-# 启动 HTTPS 服务器
-npm run start:https
-
-# 或启动 HTTP 服务器
-npm start
+# 或手动启动
+npm install          # 首次运行：安装依赖
+npm run setup        # 配置 IP 和生成证书
+npm run start:https  # 启动 HTTPS 服务器
+npm start            # 启动 HTTP 服务器
 ```
 
 ---
@@ -218,13 +255,18 @@ ipconfig
 
 ### Q1: 双击 bat 文件闪退？
 
-**A**: 右键点击 bat 文件 -> "以管理员身份运行"
+**A**: 使用 Node.js 脚本代替（推荐）
+
+```cmd
+cd nodejsn73cv
+node start-https.js
+```
 
 或者：
 1. 按 Win+R
 2. 输入 `cmd` 回车
-3. 拖动 bat 文件到命令窗口
-4. 按回车运行
+3. 进入项目目录：`cd nodejsn73cv`
+4. 运行：`node start-https.js`
 
 ### Q2: 提示"npm 不是内部或外部命令"？
 
@@ -261,12 +303,38 @@ npm install
 
 ### Q6: 如何修改端口？
 
-**A**: 编辑 `nodejsn73cv/src/index.js`：
+**A**: 编辑启动脚本中的端口配置：
 
+**修改 `start-https.js`**：
 ```javascript
-const HTTPS_PORT = process.env.HTTPS_PORT || 8443  // 改为你想要的端口
-const HTTP_PORT = process.env.HTTP_PORT || 8080
+const HTTPS_PORT = 8443;  // 改为你想要的端口
 ```
+
+**修改 `start-http.js`**：
+```javascript
+const HTTP_PORT = 8080;  // 改为你想要的端口
+```
+
+### Q7: 端口被占用怎么办？
+
+**A**: Node.js 脚本会自动清理占用的端口
+
+如果自动清理失败，手动清理：
+
+**Windows**：
+```cmd
+# 查找占用端口的进程
+netstat -ano | findstr :8443
+
+# 结束进程（替换 PID）
+taskkill /PID 进程ID /F
+```
+
+**或直接使用脚本**：
+```cmd
+node start-https.js
+```
+脚本会自动处理端口占用问题。
 
 ---
 
