@@ -98,9 +98,27 @@ initializeDb( db => {
 
 	app.use('/' + config.projectName, api({ config, db }))
 
+	// 获取本机局域网 IP 地址
+	function getLocalIP() {
+		const os = require('os')
+		const interfaces = os.networkInterfaces()
+
+		for (const name of Object.keys(interfaces)) {
+			for (const iface of interfaces[name]) {
+				// 跳过内部地址和非 IPv4 地址
+				if (iface.family === 'IPv4' && !iface.internal) {
+					return iface.address
+				}
+			}
+		}
+
+		return 'localhost'
+	}
+
 	// 启动服务器，监听所有网络接口，支持真机调试
 	const port = USE_HTTPS ? HTTPS_PORT : HTTP_PORT
 	const protocol = USE_HTTPS ? 'https' : 'http'
+	const localIP = getLocalIP()
 
 	app.server.listen(port, '0.0.0.0', () => {
 		console.log('========================================')
@@ -109,7 +127,7 @@ initializeDb( db => {
 		console.log(`协议: ${protocol.toUpperCase()}`)
 		console.log(`端口: ${port}`)
 		console.log(`本地访问: ${protocol}://localhost:${port}`)
-		console.log(`局域网访问: ${protocol}://0.0.0.0:${port}`)
+		console.log(`局域网访问: ${protocol}://${localIP}:${port}`)
 		console.log('========================================')
 		if (USE_HTTPS) {
 			console.log('✅ HTTPS 已启用 - 适用于真机调试')
@@ -118,6 +136,8 @@ initializeDb( db => {
 			console.log('ℹ️  HTTP 模式 - 仅适用于开发环境')
 			console.log('💡 真机调试需要 HTTPS，请设置环境变量: USE_HTTPS=true')
 		}
+		console.log('========================================')
+		console.log(`📱 微信小程序配置地址: ${protocol}://${localIP}:${port}/nodejsn73cv/`)
 		console.log('========================================')
 	})
 })
