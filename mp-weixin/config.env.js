@@ -40,7 +40,7 @@ const ENV_CONFIG = {
    * 开发环境：本地开发者工具 / 模拟器
    */
   development: {
-    baseURL: 'http://localhost:8080/nodejsn73cv/',
+    baseURL: 'http://192.168.6.107:8080/nodejsn73cv/',
     apiRoot: 'nodejsn73cv/',
     description: '开发环境 - 微信开发者工具'
   },
@@ -58,9 +58,9 @@ const ENV_CONFIG = {
    * - HTTPS（生产）：https://YOUR_DOMAIN:8443/nodejsn73cv/
    */
   testing: {
-    baseURL: 'http://YOUR_LOCAL_IP:8080/nodejsn73cv/',
+    baseURL: 'http://192.168.6.107:8080/nodejsn73cv/',
     // 如果已配置 HTTPS，取消下面的注释并注释掉上面的 HTTP 地址
-    // baseURL: 'https://YOUR_LOCAL_IP:8443/nodejsn73cv/',
+    // baseURL: 'https://192.168.6.107:8443/nodejsn73cv/',
     apiRoot: 'nodejsn73cv/',
     description: '测试环境 - 真机调试 / 预览，请配置服务器地址'
   },
@@ -99,13 +99,53 @@ function safeCall(fn, fallback) {
   }
 }
 
-function getSystemInfo() {
-  return safeCall(() => {
-    if (typeof wx !== 'undefined' && typeof wx.getSystemInfoSync === 'function') {
-      return wx.getSystemInfoSync();
+function mergeInfo(target, source) {
+  if (!target || !source || typeof source !== 'object') {
+    return target;
+  }
+  Object.keys(source).forEach((key) => {
+    const value = source[key];
+    if (value !== undefined) {
+      target[key] = value;
     }
+  });
+  return target;
+}
+
+function callWxSync(methodName) {
+  if (typeof wx === 'undefined') {
+    return undefined;
+  }
+  const fn = wx[methodName];
+  if (typeof fn !== 'function') {
+    return undefined;
+  }
+  return safeCall(() => fn.call(wx), undefined);
+}
+
+const SYSTEM_INFO_APIS = [
+  'getDeviceInfo',
+  'getWindowInfo',
+  'getAppBaseInfo',
+  'getSystemSetting',
+  'getAppAuthorizeSetting'
+];
+
+function getSystemInfo() {
+  if (typeof wx === 'undefined') {
     return {};
-  }, {}) || {};
+  }
+
+  const info = {};
+
+  SYSTEM_INFO_APIS.forEach((method) => {
+    const fragment = callWxSync(method);
+    if (fragment && typeof fragment === 'object') {
+      mergeInfo(info, fragment);
+    }
+  });
+
+  return info;
 }
 
 function getAccountInfo() {
@@ -408,7 +448,7 @@ function getRuntimeSnapshot(isProduction) {
   };
 }
 
-module.exports = {
+const exportedEnvTools = {
   ENV_CONFIG,
   getEnvConfig,
   getBaseURL,
@@ -420,3 +460,23 @@ module.exports = {
   clearEnvironmentBaseURL,
   getRuntimeSnapshot
 };
+
+module.exports = exportedEnvTools;
+
+try {
+  const target = typeof globalThis !== 'undefined'
+    ? globalThis
+    : (typeof global !== 'undefined'
+        ? global
+        : (typeof wx !== 'undefined' ? wx : null));
+  if (target && !target.__MP_ENV_TOOLS__) {
+    Object.defineProperty(target, '__MP_ENV_TOOLS__', {
+      value: exportedEnvTools,
+      writable: false,
+      enumerable: false,
+      configurable: true
+    });
+  }
+} catch (err) {
+  // ignore
+}
