@@ -15,7 +15,54 @@ const IS_PRODUCTION = false;
 // ========================================
 
 // 1. 引入环境配置
-const envConfig = require('./config.env.js');
+const envModule = require('./config.env.js');
+
+const runtimeGlobal = typeof globalThis !== 'undefined'
+  ? globalThis
+  : (typeof global !== 'undefined'
+      ? global
+      : (typeof wx !== 'undefined' ? wx : {}));
+
+try {
+  const moduleKeys = envModule ? Object.keys(envModule) : [];
+  const defaultKeys = envModule && envModule.default ? Object.keys(envModule.default || {}) : [];
+  console.log('[env] module keys:', moduleKeys, 'default keys:', defaultKeys);
+} catch (err) {
+  console.warn('[env] 无法打印 config.env 模块信息:', err);
+}
+
+function unwrapEnvModule(mod, depth = 0) {
+  if (!mod || depth > 5) {
+    return {};
+  }
+  if (typeof mod.getEnvConfig === 'function' && typeof mod.getBaseURL === 'function') {
+    return mod;
+  }
+  if (mod.default) {
+    return unwrapEnvModule(mod.default, depth + 1);
+  }
+  return mod;
+}
+
+let envConfig = unwrapEnvModule(envModule);
+
+function getEnvTools() {
+  if (envConfig && typeof envConfig.getEnvConfig === 'function') {
+    return envConfig;
+  }
+  const fallback = runtimeGlobal.__MP_ENV_TOOLS__ || (typeof wx !== 'undefined' ? wx.__MP_ENV_TOOLS__ : null);
+  if (fallback && typeof fallback.getEnvConfig === 'function') {
+    envConfig = fallback;
+    return envConfig;
+  }
+  const keys = envModule ? Object.keys(envModule) : [];
+  console.error('[env] config.env.js 导出异常，当前 keys:', keys);
+  throw new Error('[env] 无法加载 config.env.js，请检查编译产物');
+}
+
+// 预先暴露统一的环境获取方法，供编译产物读取，确保真机调试/预览始终使用一致的 baseURL
+runtimeGlobal.__MP_GET_BASE_URL__ = () => getEnvTools().getBaseURL(IS_PRODUCTION);
+runtimeGlobal.__MP_GET_API_ROOT__ = () => getEnvTools().getApiRoot(IS_PRODUCTION);
 
 // 2. 引入网络请求拦截器（必须第一个加载）
 const miniFix = require('./mini_fix.js');
@@ -46,19 +93,33 @@ App({
     console.log('App 启动');
     console.log('========================================');
 
+    // 输出系统信息用于调试
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      const accountInfo = wx.getAccountInfoSync();
+
+      console.log('📱 运行环境信息:');
+      console.log('  - 平台:', systemInfo.platform);
+      console.log('  - 版本通道:', accountInfo.miniProgram?.envVersion || '未知');
+      console.log('  - 微信版本:', systemInfo.version);
+      console.log('========================================');
+    } catch (err) {
+      console.warn('无法获取系统信息:', err);
+    }
+
     // 创建全局 $base 对象
     this.$base = this.$base || {};
 
     // 从环境配置获取 API 地址
-    const config = envConfig.getEnvConfig(IS_PRODUCTION);
+    const config = getEnvTools().getEnvConfig(IS_PRODUCTION);
     this.$base.url = config.baseURL;
     this.$base.env = config.env;
     this.$base.isProduction = IS_PRODUCTION;
 
-    console.log('环境配置已加载:');
-    console.log('- 当前环境:', config.env);
-    console.log('- 环境描述:', config.description);
-    console.log('- API 地址:', this.$base.url);
+    console.log('⚙️ 环境配置已加载:');
+    console.log('  - 当前环境:', config.env);
+    console.log('  - 环境描述:', config.description);
+    console.log('  - API 地址:', this.$base.url);
     console.log('========================================');
 
     // 验证配置
@@ -69,10 +130,41 @@ App({
       console.error('检测到您正在使用真机调试，但尚未配置本机 IP 地址');
       console.error('请按以下步骤操作：');
       console.error('1. 打开文件：config.env.js');
-      console.error('2. 找到 debug.baseURL 配置项');
+      console.error('2. 找到 testing.baseURL 配置项');
       console.error('3. 将 YOUR_LOCAL_IP 替换为您电脑的局域网 IP');
       console.error('4. 保存文件并重新编译');
       console.error('========================================');
+    }
+
+    // 检查真机环境是否使用了 localhost
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      const platform = (systemInfo.platform || '').toLowerCase();
+
+      if (platform !== 'devtools' && this.$base.url.includes('localhost')) {
+        console.error('========================================');
+        console.error('❌ 环境配置错误！');
+        console.error('========================================');
+        console.error('检测到真机环境使用了 localhost 地址');
+        console.error('当前环境:', config.env);
+        console.error('当前地址:', this.$base.url);
+        console.error('');
+        console.error('🔧 快速修复方法：');
+        console.error('在控制台执行以下命令：');
+        console.error('');
+        console.error('// 方法 1: 清除缓存并重启');
+        console.error('wx.clearStorageSync()');
+        console.error('');
+        console.error('// 方法 2: 手动设置环境（将 IP 替换为你的电脑 IP）');
+        console.error('const envConfig = require("./config.env.js");');
+        console.error('envConfig.setManualEnvironment("testing");');
+        console.error('envConfig.setEnvironmentBaseURL("testing", "http://192.168.x.x:8080/nodejsn73cv/");');
+        console.error('');
+        console.error('然后重新启动小程序');
+        console.error('========================================');
+      }
+    } catch (err) {
+      // 忽略错误
     }
   },
 
@@ -83,7 +175,7 @@ App({
   getApiBaseUrl: function() {
     this.$base = this.$base || {};
     if (!this.$base.url) {
-      const config = envConfig.getEnvConfig(IS_PRODUCTION);
+      const config = getEnvTools().getEnvConfig(IS_PRODUCTION);
       this.$base.url = config.baseURL;
       this.$base.env = config.env;
       this.$base.isProduction = IS_PRODUCTION;

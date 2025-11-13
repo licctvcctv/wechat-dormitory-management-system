@@ -1,74 +1,74 @@
 {
-    "description": "项目配置文件。",
-    "packOptions": {
-        "ignore": [
-            {
-                "type": "folder",
-                "value": "nodejsn73cv"
-            }
-        ],
-        "include": []
+  "description": "项目配置文件。",
+  "packOptions": {
+    "ignore": [
+      {
+        "value": "nodejsn73cv",
+        "type": "folder"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "minified": true,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "checkSiteMap": false,
+    "ignoreDevUnusedFiles": true,
+    "allowPrivateRequest": true,
+    "allowPrivateNetwork": true,
+    "checkInvalidKey": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
     },
-    "setting": {
-        "urlCheck": false,
-        "es6": true,
-        "postcss": false,
-        "compileWorklet": false,
-        "minified": true,
-        "uglifyFileName": false,
-        "uploadWithSourceMap": true,
-        "enhance": true,
-        "packNpmManually": false,
-        "packNpmRelationList": [],
-        "minifyWXSS": true,
-        "minifyWXML": true,
-        "localPlugins": false,
-        "disableUseStrict": false,
-        "useCompilerPlugins": false,
-        "condition": false,
-        "swc": false,
-        "disableSWC": true,
-        "checkSiteMap": false,
-        "ignoreDevUnusedFiles": true,
-        "allowPrivateRequest": true,
-        "allowPrivateNetwork": true,
-        "checkInvalidKey": false,
-        "babelSetting": {
-            "ignore": [],
-            "disablePlugins": [],
-            "outputPath": ""
-        },
-        "request": {
-                "proxy": {
-                    "/api": {
-                        "target": "http://localhost:8080/nodejsn73cv",
-                        "changeOrigin": true
-                    }
-                }
-            }
-    },
-    "compileType": "miniprogram",
-    "libVersion": "3.11.0",
-    "appid": "wx0972735b19b8d88d",
-    "projectname": "app02",
-    "condition": {
-        "search": {
-            "current": -1,
-            "list": []
-        },
-        "conversation": {
-            "current": -1,
-            "list": []
-        },
-        "game": {
-            "current": -1,
-            "list": []
-        },
-        "miniprogram": {
-            "current": -1,
-            "list": []
+    "request": {
+      "proxy": {
+        "/api": {
+          "target": "http://localhost:8080/nodejsn73cv",
+          "changeOrigin": true
         }
+      }
+    }
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.11.0",
+  "appid": "wxf7417e6fd5a522c5",
+  "projectname": "app02",
+  "condition": {
+    "search": {
+      "current": -1,
+      "list": []
     },
-    "simulatorPluginLibVersion": {},
-    "editorSetting": {}
+    "conversation": {
+      "current": -1,
+      "list": []
+    },
+    "game": {
+      "current": -1,
+      "list": []
+    },
+    "miniprogram": {
+      "current": -1,
+      "list": []
+    }
+  },
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }
